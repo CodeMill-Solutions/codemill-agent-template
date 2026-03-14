@@ -1,0 +1,20 @@
+{
+  "agent": {
+    "name": "CodeMill OpenClaw Agent",
+    "version": "1.0.0"
+  },
+  "llm": {
+    "provider": "azure-openai",
+    "endpoint": "${AZURE_OPENAI_ENDPOINT}",
+    "apiKey": "${AZURE_OPENAI_API_KEY}",
+    "deploymentName": "${AZURE_OPENAI_DEPLOYMENT_NAME}",
+    "apiVersion": "2024-08-01-preview"
+  },
+  "mcporter": {
+    "configPath": "~/.openclaw/workspace/config/mcporter.json"
+  },
+  "logging": {
+    "level": "info",
+    "format": "json"
+  }
+}

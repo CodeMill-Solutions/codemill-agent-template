@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  com.codemill.agent.plist
+  Installed to ~/Library/LaunchAgents/ by setup.sh.
+  {{HOME}} is replaced with the actual home directory by setup.sh.
+-->
+<plist version="1.0">
+<dict>
+
+  <!-- Service identity -->
+  <key>Label</key>
+  <string>com.codemill.agent</string>
+
+  <!-- Command to run -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>-c</string>
+    <!-- Load .env then start OpenClaw. 'set -a' exports all sourced vars. -->
+    <string>set -a; source {{HOME}}/codemill-agent/.env; set +a; exec openclaw start --config {{HOME}}/codemill-agent/agent.config.json</string>
+  </array>
+
+  <!-- Working directory -->
+  <key>WorkingDirectory</key>
+  <string>{{HOME}}/codemill-agent</string>
+
+  <!-- Logging -->
+  <key>StandardOutPath</key>
+  <string>{{HOME}}/Library/Logs/codemill-agent/stdout.log</string>
+  <key>StandardErrorPath</key>
+  <string>{{HOME}}/Library/Logs/codemill-agent/stderr.log</string>
+
+  <!-- Auto-start on login -->
+  <key>RunAtLoad</key>
+  <true/>
+
+  <!-- Auto-restart on crash -->
+  <key>KeepAlive</key>
+  <dict>
+    <!-- Only restart on crash (non-zero exit), not on clean stop -->
+    <key>SuccessfulExit</key>
+    <false/>
+  </dict>
+
+  <!-- Throttle restarts — wait 10 s before re-launching after a crash -->
+  <key>ThrottleInterval</key>
+  <integer>10</integer>
+
+  <!-- Process priority (default) -->
+  <key>ProcessType</key>
+  <string>Background</string>
+
+</dict>
+</plist>

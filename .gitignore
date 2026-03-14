@@ -1,0 +1,40 @@
+# ── Secrets — NEVER commit these ──────────────────────────────────────────────
+.env
+
+# ── Node ──────────────────────────────────────────────────────────────────────
+node_modules/
+dist/
+.pnpm-store/
+.pnpm-debug.log
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── Google credentials (store outside repo or in credentials/ folder) ─────────
+credentials/
+*-service-account.json
+*-credentials.json
+
+# ── macOS ─────────────────────────────────────────────────────────────────────
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# ── Editor ────────────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ── Windows ───────────────────────────────────────────────────────────────────
+Thumbs.db
+
+# ── Learnings — entries are local-only, templates are tracked ─────────────────
+# Individual .md files are gitignored; .gitkeep tracks the directory itself.
+.learnings/*.md
+!.learnings/.gitkeep
+
+# ── Miscellaneous ─────────────────────────────────────────────────────────────
+.claude
+docs
