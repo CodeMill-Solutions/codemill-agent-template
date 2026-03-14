@@ -9,7 +9,7 @@ Template repository for deploying a **CodeMill OpenClaw AI Agent** on an Apple S
 Run this single command on the target machine to install all dependencies and set up the agent:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/CodeMill-Solutions/codemill-agent-template/main/scripts/bootstrap.sh | bash -s -- <client-repo-url>
+sudo curl -fsSL https://raw.githubusercontent.com/CodeMill-Solutions/codemill-agent-template/main/scripts/bootstrap.sh | bash -s -- <client-repo-url>
 ```
 
 Replace `<client-repo-url>` with the SSH or HTTPS URL of the client's private repo (e.g. `git@github.com:CodeMill-Solutions/codemill-agent-acme.git`).
@@ -25,10 +25,11 @@ bash ~/codemill-agent/scripts/service.sh restart
 ## What bootstrap does
 
 1. Installs **Homebrew** (if not present)
-2. Installs **mise**, uses it to install **Node.js LTS**
-3. Installs **pnpm** and **OpenClaw**
-4. Clones the client repo to `~/codemill-agent`
-5. Calls `scripts/setup.sh` to finish configuration
+2. Installs **Node.js LTS** via Homebrew
+3. Installs **pnpm** (via npm) and **OpenClaw**
+4. Prompts for a GitHub PAT to clone the private client repo
+5. Clones the client repo to `~/codemill-agent`
+6. Calls `scripts/setup.sh` to finish configuration
 
 ## What setup does
 

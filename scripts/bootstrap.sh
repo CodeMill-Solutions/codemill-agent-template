@@ -53,28 +53,16 @@ if [[ -f /opt/homebrew/bin/brew ]]; then
   eval "$(/opt/homebrew/bin/brew shellenv)"
 fi
 
-# ── 2. mise ────────────────────────────────────────────────────────────────────
-if command -v mise &>/dev/null; then
-  ok "mise already installed — skipping."
+# ── 2. Node.js LTS via Homebrew ───────────────────────────────────────────────
+if command -v node &>/dev/null; then
+  ok "Node.js already installed — skipping. ($(node --version))"
 else
-  log "Installing mise..."
-  brew install mise
-  ok "mise installed."
-fi
-
-# Activate mise in this shell session
-eval "$(mise activate bash)"
-
-# ── 3. Node.js LTS via mise ────────────────────────────────────────────────────
-if mise current node &>/dev/null; then
-  ok "Node.js already managed by mise — skipping."
-else
-  log "Installing Node.js LTS via mise..."
-  mise use --global node@lts
+  log "Installing Node.js LTS via Homebrew..."
+  brew install node
   ok "Node.js LTS installed: $(node --version)"
 fi
 
-# ── 4. pnpm ────────────────────────────────────────────────────────────────────
+# ── 3. pnpm ────────────────────────────────────────────────────────────────────
 if command -v pnpm &>/dev/null; then
   ok "pnpm already installed — skipping."
 else
@@ -83,7 +71,7 @@ else
   ok "pnpm installed: $(pnpm --version)"
 fi
 
-# ── 5. OpenClaw ────────────────────────────────────────────────────────────────
+# ── 4. OpenClaw ────────────────────────────────────────────────────────────────
 if command -v openclaw &>/dev/null; then
   ok "OpenClaw already installed — skipping."
 else
@@ -92,7 +80,7 @@ else
   ok "OpenClaw installed: $(openclaw --version 2>/dev/null || echo 'version unknown')"
 fi
 
-# ── 6. Clone client repo ───────────────────────────────────────────────────────
+# ── 5. Clone client repo ───────────────────────────────────────────────────────
 if [[ -d "$AGENT_DIR/.git" ]]; then
   warn "Client repo already cloned at $AGENT_DIR — pulling latest..."
   git -C "$AGENT_DIR" pull --ff-only
@@ -119,7 +107,7 @@ else
   ok "Repo gecloned (token gewist uit geheugen en remote URL)."
 fi
 
-# ── 7. Hand off to setup.sh ────────────────────────────────────────────────────
+# ── 6. Hand off to setup.sh ────────────────────────────────────────────────────
 SETUP_SCRIPT="$AGENT_DIR/scripts/setup.sh"
 [[ -f "$SETUP_SCRIPT" ]] || die "setup.sh not found in cloned repo at $SETUP_SCRIPT"
 
