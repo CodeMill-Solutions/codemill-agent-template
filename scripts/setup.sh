@@ -157,7 +157,8 @@ if [[ -d "$HOOKS_DEST" ]]; then
   warn "self-improvement hooks already installed — skipping."
 elif [[ -d "$HOOKS_SRC" ]]; then
   log "Installing self-improvement OpenClaw hooks..."
-  cp -r "$HOOKS_SRC" "$HOOKS_DEST"
+  mkdir -p "$HOOKS_DEST"
+  cp -r "$HOOKS_SRC/." "$HOOKS_DEST/"
   if command -v openclaw &>/dev/null; then
     openclaw hooks enable self-improvement
     ok "Hooks installed and enabled."
