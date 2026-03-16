@@ -65,6 +65,8 @@ Key facts:
 | Bootstrap / setup / service management | `scripts/` |
 | Client-facing docs (NL) | `docs/onboarding-klant.md` |
 | Internal ops docs (NL) | `docs/new-client-checklist.md` |
+| Client-specific skills | `skills/<skill-name>/` (committed, installed to `~/.openclaw/skills/`) |
+| Client-specific plugins | `plugins/<plugin-name>/` (committed, installed to `~/.openclaw/plugins/`) |
 | Learnings, errors, feature requests | `~/.openclaw/workspace/.learnings/` (local-only, never committed) |
 
 ---

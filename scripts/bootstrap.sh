@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 # bootstrap.sh — entry point for setting up a CodeMill OpenClaw agent on a fresh Mac Mini
 # Usage: curl -fsSL https://raw.githubusercontent.com/CodeMill-Solutions/codemill-agent-template/main/scripts/bootstrap.sh | bash -s -- https://github.com/CodeMill-Solutions/codemill-agent-klantnaam
+#
+# NOTE: when piped from curl, bash reads the script in chunks from stdin. If a slow step
+# (like `brew install`) is running, bash may read and display later chunks of the script
+# while still executing the current step. This is cosmetic — execution order is correct.
+# To avoid it entirely, save to a temp file and run directly instead of piping.
 set -euo pipefail
 
 CLIENT_REPO_URL="${1:-}"
@@ -76,7 +81,7 @@ if command -v openclaw &>/dev/null; then
   ok "OpenClaw already installed — skipping."
 else
   log "Installing OpenClaw..."
-  npm install -g @openclaw/cli
+  npm install -g openclaw
   ok "OpenClaw installed: $(openclaw --version 2>/dev/null || echo 'version unknown')"
 fi
 

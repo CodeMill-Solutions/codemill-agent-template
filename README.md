@@ -9,7 +9,7 @@ Template repository for deploying a **CodeMill OpenClaw AI Agent** on an Apple S
 Run this single command on the target machine to install all dependencies and set up the agent:
 
 ```bash
-sudo curl -fsSL https://raw.githubusercontent.com/CodeMill-Solutions/codemill-agent-template/main/scripts/bootstrap.sh | bash -s -- <client-repo-url>
+curl -fsSL https://raw.githubusercontent.com/CodeMill-Solutions/codemill-agent-template/main/scripts/bootstrap.sh | bash -s -- <client-repo-url>
 ```
 
 Replace `<client-repo-url>` with the SSH or HTTPS URL of the client's private repo (e.g. `git@github.com:CodeMill-Solutions/codemill-agent-acme.git`).
@@ -40,7 +40,9 @@ bash ~/codemill-agent/scripts/service.sh restart
 5. Installs the **self-improving-agent** skill (via ClawHub or git clone)
 6. Creates `~/.openclaw/workspace/.learnings/` and copies the learning templates
 7. Installs and enables the OpenClaw self-improvement hooks
-8. Prints a summary of remaining manual steps
+8. Installs any client-specific **skills** from `skills/` → `~/.openclaw/skills/`
+9. Installs any client-specific **plugins** from `plugins/` → `~/.openclaw/plugins/`
+10. Prints a summary of remaining manual steps
 
 ---
 
@@ -69,6 +71,10 @@ codemill-agent-template/
 ├── docs/
 │   ├── onboarding-klant.md        # Client-facing guide (Dutch)
 │   └── new-client-checklist.md    # Internal ops checklist (Dutch)
+├── skills/
+│   └── .gitkeep            # Add client-specific skill subdirectories here
+├── plugins/
+│   └── .gitkeep            # Add client-specific plugin subdirectories here
 ├── .learnings/
 │   └── .gitkeep            # Tracks directory; *.md files are gitignored (local-only)
 ├── mcporter.json           # MCP server configuration (MCPorter format)
@@ -125,6 +131,21 @@ The agent is equipped with the [self-improving-agent](https://github.com/petersk
 
 **Learnings are always local.** The `.learnings/*.md` files are gitignored and will never be committed or pushed to the client repo. Only the `.learnings/.gitkeep` file (which tracks the directory itself) is version-controlled.
 
+### Client-specific skills & plugins
+
+Add client-specific skills as subdirectories under `skills/`, and plugins under `plugins/`. `setup.sh` automatically detects and installs every subdirectory it finds:
+
+```
+skills/
+└── my-custom-skill/        → installed to ~/.openclaw/skills/my-custom-skill/
+plugins/
+└── my-custom-plugin/       → installed to ~/.openclaw/plugins/my-custom-plugin/
+```
+
+- Both directories are committed to the client repo — they are part of its configuration.
+- Re-running `setup.sh` always overwrites the installed version with the repo version (repo is source of truth).
+- If either directory is absent or empty, the step is silently skipped.
+
 ---
 
 ## Creating a new client repo
@@ -150,5 +171,3 @@ The agent is equipped with the [self-improving-agent](https://github.com/petersk
 - SSH key or HTTPS credentials for cloning the client repo
 
 ---
-
-*Built by [CodeMill B.V.](https://codemill.nl)*

@@ -112,7 +112,63 @@ else
   warn "Hooks source directory not found at $HOOKS_SRC — skipping hook install."
 fi
 
-# ── 9. Summary ────────────────────────────────────────────────────────────────
+# ── 9. Client-specific skills ─────────────────────────────────────────────────
+CLIENT_SKILLS_DIR="$AGENT_DIR/skills"
+OPENCLAW_SKILLS_DIR="$HOME/.openclaw/skills"
+
+if [[ -d "$CLIENT_SKILLS_DIR" ]]; then
+  skill_count=0
+  for skill_path in "$CLIENT_SKILLS_DIR"/*/; do
+    [[ -d "$skill_path" ]] || continue
+    skill_name="$(basename "$skill_path")"
+    dest="$OPENCLAW_SKILLS_DIR/$skill_name"
+    mkdir -p "$OPENCLAW_SKILLS_DIR"
+    if [[ -d "$dest" ]]; then
+      warn "Skill '$skill_name' already exists — overwriting with repo version."
+      rm -rf "$dest"
+    fi
+    cp -r "$skill_path" "$dest"
+    ok "Skill installed: $skill_name → $dest"
+    (( skill_count++ )) || true
+  done
+  if (( skill_count == 0 )); then
+    warn "skills/ directory found but contains no subdirectories — skipping."
+  else
+    ok "$skill_count client skill(s) installed."
+  fi
+else
+  log "No skills/ directory in repo — skipping client skills."
+fi
+
+# ── 10. Client-specific plugins ───────────────────────────────────────────────
+CLIENT_PLUGINS_DIR="$AGENT_DIR/plugins"
+OPENCLAW_PLUGINS_DIR="$HOME/.openclaw/plugins"
+
+if [[ -d "$CLIENT_PLUGINS_DIR" ]]; then
+  plugin_count=0
+  for plugin_path in "$CLIENT_PLUGINS_DIR"/*/; do
+    [[ -d "$plugin_path" ]] || continue
+    plugin_name="$(basename "$plugin_path")"
+    dest="$OPENCLAW_PLUGINS_DIR/$plugin_name"
+    mkdir -p "$OPENCLAW_PLUGINS_DIR"
+    if [[ -d "$dest" ]]; then
+      warn "Plugin '$plugin_name' already exists — overwriting with repo version."
+      rm -rf "$dest"
+    fi
+    cp -r "$plugin_path" "$dest"
+    ok "Plugin installed: $plugin_name → $dest"
+    (( plugin_count++ )) || true
+  done
+  if (( plugin_count == 0 )); then
+    warn "plugins/ directory found but contains no subdirectories — skipping."
+  else
+    ok "$plugin_count client plugin(s) installed."
+  fi
+else
+  log "No plugins/ directory in repo — skipping client plugins."
+fi
+
+# ── 11. Summary ────────────────────────────────────────────────────────────────
 echo ""
 echo -e "${GREEN}╔══════════════════════════════════════════════════════════╗${NC}"
 echo -e "${GREEN}║        CodeMill OpenClaw Agent — Setup complete          ║${NC}"
