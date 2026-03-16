@@ -89,6 +89,15 @@ fi
 
 # ── 6. launchd service ────────────────────────────────────────────────────────
 mkdir -p "$HOME/Library/LaunchAgents"
+mkdir -p "$AGENT_DIR/launchd"
+
+# Download plist from template if not present in client repo
+if [[ ! -f "$PLIST_SRC" ]]; then
+  log "Downloading launchd plist from template..."
+  curl -fsSL "$TEMPLATE_BASE/launchd/${PLIST_LABEL}.plist" -o "$PLIST_SRC" \
+    || die "Failed to download launchd plist from template."
+  ok "launchd plist downloaded from template."
+fi
 
 # Expand $HOME in plist (plist does not support shell expansion)
 sed "s|{{HOME}}|$HOME|g" "$PLIST_SRC" > "$PLIST_DEST"
