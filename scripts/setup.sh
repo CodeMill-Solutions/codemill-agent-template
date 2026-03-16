@@ -4,7 +4,7 @@
 set -euo pipefail
 
 AGENT_DIR="$HOME/codemill-agent"
-OPENCLAW_CONFIG_DIR="$HOME/.openclaw/workspace/config"
+OPENCLAW_CONFIG_DIR="$HOME/.openclaw"
 TEMPLATE_BASE="${TEMPLATE_BASE:-https://raw.githubusercontent.com/CodeMill-Solutions/codemill-agent-template/main}"
 PLIST_LABEL="com.codemill.agent"
 PLIST_SRC="$AGENT_DIR/launchd/${PLIST_LABEL}.plist"
@@ -45,7 +45,49 @@ fi
 cp "$AGENT_DIR/mcporter.json" "$OPENCLAW_CONFIG_DIR/mcporter.json"
 ok "mcporter.json installed to $OPENCLAW_CONFIG_DIR"
 
-# ── 4. launchd service ────────────────────────────────────────────────────────
+# ── 4. openclaw.json ──────────────────────────────────────────────────────────
+OPENCLAW_JSON_SRC="$AGENT_DIR/openclaw-config/openclaw.json"
+OPENCLAW_JSON_DEST="$HOME/.openclaw/openclaw.json"
+
+if [[ -f "$OPENCLAW_JSON_SRC" ]]; then
+  if [[ -f "$OPENCLAW_JSON_DEST" ]]; then
+    warn "openclaw.json already exists at $OPENCLAW_JSON_DEST — overwriting with repo version."
+  fi
+  mkdir -p "$HOME/.openclaw"
+  cp "$OPENCLAW_JSON_SRC" "$OPENCLAW_JSON_DEST"
+  ok "openclaw.json installed to $OPENCLAW_JSON_DEST"
+else
+  warn "openclaw-config/openclaw.json not found in repo — skipping."
+fi
+
+# ── 5. cron jobs ──────────────────────────────────────────────────────────────
+CLIENT_CRON_DIR="$AGENT_DIR/openclaw-config/cron"
+OPENCLAW_CRON_DIR="$HOME/.openclaw/cron"
+
+if [[ -d "$CLIENT_CRON_DIR" ]]; then
+  mkdir -p "$OPENCLAW_CRON_DIR"
+  cron_count=0
+  for cron_file in "$CLIENT_CRON_DIR"/*.json; do
+    [[ -f "$cron_file" ]] || continue   # skip if glob found nothing
+    cron_name="$(basename "$cron_file")"
+    dest="$OPENCLAW_CRON_DIR/$cron_name"
+    if [[ -f "$dest" ]]; then
+      warn "Cron job '$cron_name' already exists — overwriting with repo version."
+    fi
+    cp "$cron_file" "$dest"
+    ok "Cron job installed: $cron_name → $dest"
+    (( cron_count++ )) || true
+  done
+  if (( cron_count == 0 )); then
+    warn "openclaw-config/cron/ found but contains no .json files — skipping."
+  else
+    ok "$cron_count cron job(s) installed."
+  fi
+else
+  log "No openclaw-config/cron/ directory in repo — skipping cron jobs."
+fi
+
+# ── 6. launchd service ────────────────────────────────────────────────────────
 mkdir -p "$HOME/Library/LaunchAgents"
 
 # Expand $HOME in plist (plist does not support shell expansion)
@@ -62,7 +104,7 @@ log "Loading launchd service..."
 launchctl load -w "$PLIST_DEST"
 ok "launchd service loaded and enabled."
 
-# ── 5. self-improving-agent skill ─────────────────────────────────────────────
+# ── 7. self-improving-agent skill ─────────────────────────────────────────────
 SKILL_DIR="$HOME/.openclaw/skills/self-improving-agent"
 
 if [[ -d "$SKILL_DIR/.git" ]]; then
@@ -77,13 +119,13 @@ else
   ok "self-improving-agent skill installed."
 fi
 
-# ── 6. .learnings workspace directory ─────────────────────────────────────────
+# ── 8. .learnings workspace directory ─────────────────────────────────────────
 LEARNINGS_DIR="$HOME/.openclaw/workspace/.learnings"
 log "Creating .learnings directory..."
 mkdir -p "$LEARNINGS_DIR"
 ok ".learnings directory ready at $LEARNINGS_DIR"
 
-# ── 7. Copy learning template files (skip if already present) ─────────────────
+# ── 9. Copy learning template files (skip if already present) ─────────────────
 ASSETS_DIR="$SKILL_DIR/assets"
 for template_file in LEARNINGS.md ERRORS.md FEATURE_REQUESTS.md; do
   dest="$LEARNINGS_DIR/$template_file"
@@ -98,7 +140,7 @@ for template_file in LEARNINGS.md ERRORS.md FEATURE_REQUESTS.md; do
   fi
 done
 
-# ── 8. OpenClaw hooks ─────────────────────────────────────────────────────────
+# ── 10. OpenClaw hooks ─────────────────────────────────────────────────────────
 HOOKS_SRC="$SKILL_DIR/hooks/openclaw"
 HOOKS_DEST="$HOME/.openclaw/hooks/self-improvement"
 
@@ -117,7 +159,7 @@ else
   warn "Hooks source directory not found at $HOOKS_SRC — skipping hook install."
 fi
 
-# ── 9. Client-specific skills ─────────────────────────────────────────────────
+# ── 11. Client-specific skills ─────────────────────────────────────────────────
 CLIENT_SKILLS_DIR="$AGENT_DIR/skills"
 OPENCLAW_SKILLS_DIR="$HOME/.openclaw/skills"
 
@@ -146,7 +188,7 @@ else
   log "No skills/ directory in repo — skipping client skills."
 fi
 
-# ── 10. Client-specific plugins ───────────────────────────────────────────────
+# ── 12. Client-specific plugins ───────────────────────────────────────────────
 CLIENT_PLUGINS_DIR="$AGENT_DIR/plugins"
 OPENCLAW_PLUGINS_DIR="$HOME/.openclaw/plugins"
 
@@ -175,7 +217,7 @@ else
   log "No plugins/ directory in repo — skipping client plugins."
 fi
 
-# ── 11. Install service.sh from template ──────────────────────────────────────
+# ── 13. Install service.sh from template ──────────────────────────────────────
 # service.sh lives in the template repo. Download it to the agent dir so it is
 # available for day-to-day service management after setup completes.
 log "Installing service.sh..."
@@ -184,7 +226,7 @@ curl -fsSL "$TEMPLATE_BASE/scripts/service.sh" -o "$AGENT_DIR/scripts/service.sh
 chmod +x "$AGENT_DIR/scripts/service.sh"
 ok "service.sh installed to $AGENT_DIR/scripts/service.sh"
 
-# ── 12. Summary ────────────────────────────────────────────────────────────────
+# ── 14. Summary ────────────────────────────────────────────────────────────────
 echo ""
 echo -e "${GREEN}╔══════════════════════════════════════════════════════════╗${NC}"
 echo -e "${GREEN}║        CodeMill OpenClaw Agent — Setup complete          ║${NC}"
