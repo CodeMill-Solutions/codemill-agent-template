@@ -200,7 +200,7 @@ fi
 
 # ── 12. Client-specific plugins ───────────────────────────────────────────────
 CLIENT_PLUGINS_DIR="$AGENT_DIR/plugins"
-OPENCLAW_PLUGINS_DIR="$HOME/.openclaw/plugins"
+OPENCLAW_PLUGINS_DIR="$HOME/.openclaw/extensions"
 
 if [[ -d "$CLIENT_PLUGINS_DIR" ]]; then
   mkdir -p "$OPENCLAW_PLUGINS_DIR"
