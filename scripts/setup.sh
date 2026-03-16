@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # setup.sh — post-clone setup for a CodeMill OpenClaw agent
-# Run automatically by bootstrap.sh, or manually from ~/codemill-agent after cloning.
+# Downloaded and run by bootstrap.sh. Can also be re-run manually.
 set -euo pipefail
 
 AGENT_DIR="$HOME/codemill-agent"
 OPENCLAW_CONFIG_DIR="$HOME/.openclaw/workspace/config"
+TEMPLATE_BASE="${TEMPLATE_BASE:-https://raw.githubusercontent.com/CodeMill-Solutions/codemill-agent-template/main}"
 PLIST_LABEL="com.codemill.agent"
 PLIST_SRC="$AGENT_DIR/launchd/${PLIST_LABEL}.plist"
 PLIST_DEST="$HOME/Library/LaunchAgents/${PLIST_LABEL}.plist"
@@ -19,9 +20,13 @@ die()  { echo -e "${RED}[setup] ERROR:${NC} $*" >&2; exit 1; }
 cd "$AGENT_DIR"
 
 # ── 1. pnpm install ────────────────────────────────────────────────────────────
-log "Installing Node dependencies..."
-pnpm install --frozen-lockfile 2>/dev/null || pnpm install
-ok "Dependencies installed."
+if [[ -f "$AGENT_DIR/package.json" ]]; then
+  log "Installing Node dependencies..."
+  pnpm install --frozen-lockfile 2>/dev/null || pnpm install
+  ok "Dependencies installed."
+else
+  log "No package.json found in client repo — skipping pnpm install."
+fi
 
 # ── 2. .env ────────────────────────────────────────────────────────────────────
 if [[ -f "$AGENT_DIR/.env" ]]; then
@@ -168,7 +173,16 @@ else
   log "No plugins/ directory in repo — skipping client plugins."
 fi
 
-# ── 11. Summary ────────────────────────────────────────────────────────────────
+# ── 11. Install service.sh from template ──────────────────────────────────────
+# service.sh lives in the template repo. Download it to the agent dir so it is
+# available for day-to-day service management after setup completes.
+log "Installing service.sh..."
+mkdir -p "$AGENT_DIR/scripts"
+curl -fsSL "$TEMPLATE_BASE/scripts/service.sh" -o "$AGENT_DIR/scripts/service.sh"
+chmod +x "$AGENT_DIR/scripts/service.sh"
+ok "service.sh installed to $AGENT_DIR/scripts/service.sh"
+
+# ── 12. Summary ────────────────────────────────────────────────────────────────
 echo ""
 echo -e "${GREEN}╔══════════════════════════════════════════════════════════╗${NC}"
 echo -e "${GREEN}║        CodeMill OpenClaw Agent — Setup complete          ║${NC}"

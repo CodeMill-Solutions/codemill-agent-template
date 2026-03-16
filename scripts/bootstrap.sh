@@ -10,6 +10,7 @@ set -euo pipefail
 
 CLIENT_REPO_URL="${1:-}"
 AGENT_DIR="$HOME/codemill-agent"
+TEMPLATE_BASE="https://raw.githubusercontent.com/CodeMill-Solutions/codemill-agent-template/main"
 
 # ── Colours ───────────────────────────────────────────────────────────────────
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; CYAN='\033[0;36m'; NC='\033[0m'
@@ -31,11 +32,11 @@ log "Starting CodeMill agent bootstrap for: $CLIENT_REPO_URL"
 # from curl (stdin is not a terminal in that case).
 GITHUB_PAT=""
 if [[ ! -d "$AGENT_DIR/.git" ]]; then
-  echo -e "${CYAN}[bootstrap]${NC} De klantrepo is privé. Voer een GitHub Personal Access Token in."
-  echo -e "             (Minimale scope: ${YELLOW}Contents: Read-only${NC} — token wordt niet opgeslagen)"
+  echo -e "${CYAN}[bootstrap]${NC} The client repo is private. Enter a GitHub Personal Access Token."
+  echo -e "             (Minimum scope: ${YELLOW}Contents: Read-only${NC} — token is never stored)"
   read -rs -p "$(echo -e "${CYAN}[bootstrap]${NC} GitHub PAT: ")" GITHUB_PAT </dev/tty
   echo  # newline after silent read
-  [[ -z "$GITHUB_PAT" ]] && die "Geen PAT ingevoerd — afgebroken."
+  [[ -z "$GITHUB_PAT" ]] && die "No PAT entered — aborting."
 fi
 
 # ── 1. Homebrew ────────────────────────────────────────────────────────────────
@@ -100,7 +101,7 @@ else
   git clone "$AUTHENTICATED_URL" "$AGENT_DIR" || {
     GITHUB_PAT=""
     unset GITHUB_PAT AUTHENTICATED_URL
-    die "git clone mislukt. Controleer de repo-URL en de geldigheid van het PAT."
+    die "git clone failed. Check the repo URL and PAT validity."
   }
 
   # Wipe credentials from memory and remove the token from the remote URL
@@ -109,13 +110,15 @@ else
   GITHUB_PAT=""
   unset GITHUB_PAT AUTHENTICATED_URL
 
-  ok "Repo gecloned (token gewist uit geheugen en remote URL)."
+  ok "Repo cloned (token cleared from memory and remote URL)."
 fi
 
 # ── 6. Hand off to setup.sh ────────────────────────────────────────────────────
-SETUP_SCRIPT="$AGENT_DIR/scripts/setup.sh"
-[[ -f "$SETUP_SCRIPT" ]] || die "setup.sh not found in cloned repo at $SETUP_SCRIPT"
-
-chmod +x "$SETUP_SCRIPT"
+# setup.sh lives in the template repo, not the client repo.
+# Download it fresh so we always run the latest version.
+SETUP_TMP="$(mktemp /tmp/codemill-setup.XXXXXX.sh)"
+log "Downloading setup.sh from template..."
+curl -fsSL "$TEMPLATE_BASE/scripts/setup.sh" -o "$SETUP_TMP"
 log "Handing off to setup.sh..."
-bash "$SETUP_SCRIPT"
+TEMPLATE_BASE="$TEMPLATE_BASE" bash "$SETUP_TMP"
+rm -f "$SETUP_TMP"
