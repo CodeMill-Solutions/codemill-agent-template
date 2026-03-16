@@ -215,6 +215,14 @@ if [[ -d "$CLIENT_PLUGINS_DIR" ]]; then
       rm -rf "$dest"
     fi
     cp -r "$plugin_path" "$dest"
+
+    # Install plugin dependencies
+    if [[ -f "$dest/package.json" ]]; then
+      log "Installing dependencies for plugin '$plugin_name'..."
+      (cd "$dest" && npm install --omit=dev) \
+        || warn "npm install failed for '$plugin_name' — plugin may not load correctly."
+    fi
+
     ok "Plugin installed: $plugin_name → $dest"
     (( plugin_count++ )) || true
   done
