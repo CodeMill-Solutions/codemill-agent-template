@@ -1,11 +1,18 @@
 #!/usr/bin/env bash
 # bootstrap.sh — entry point for setting up a CodeMill OpenClaw agent on a fresh Mac Mini
 # Usage: curl -fsSL https://raw.githubusercontent.com/CodeMill-Solutions/codemill-agent-template/main/scripts/bootstrap.sh | bash -s -- https://github.com/CodeMill-Solutions/codemill-agent-klantnaam
-#
-# NOTE: when piped from curl, bash reads the script in chunks from stdin. If a slow step
-# (like `brew install`) is running, bash may read and display later chunks of the script
-# while still executing the current step. This is cosmetic — execution order is correct.
-# To avoid it entirely, save to a temp file and run directly instead of piping.
+
+# ── curl|bash stdin guard ──────────────────────────────────────────────────────
+# When piped from curl, sub-processes like `brew install` inherit stdin (the
+# pipe) and can consume the rest of the unread script, causing silent truncation.
+# Fix: if stdin is a pipe, read the entire script into a temp file first and
+# re-exec from there. The _CM_REEXEC guard prevents infinite recursion.
+if [[ ! -t 0 ]] && [[ -z "${_CM_REEXEC:-}" ]]; then
+  _tmp="$(mktemp /tmp/codemill-bootstrap.XXXXXX.sh)"
+  cat > "$_tmp"
+  _CM_REEXEC=1 exec bash "$_tmp" "$@"
+fi
+
 set -euo pipefail
 
 CLIENT_REPO_URL="${1:-}"

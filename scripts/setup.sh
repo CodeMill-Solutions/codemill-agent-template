@@ -122,12 +122,13 @@ CLIENT_SKILLS_DIR="$AGENT_DIR/skills"
 OPENCLAW_SKILLS_DIR="$HOME/.openclaw/skills"
 
 if [[ -d "$CLIENT_SKILLS_DIR" ]]; then
+  mkdir -p "$OPENCLAW_SKILLS_DIR"
   skill_count=0
   for skill_path in "$CLIENT_SKILLS_DIR"/*/; do
-    [[ -d "$skill_path" ]] || continue
+    skill_path="${skill_path%/}"          # strip trailing slash added by glob
+    [[ -d "$skill_path" ]] || continue   # skip if glob found nothing
     skill_name="$(basename "$skill_path")"
     dest="$OPENCLAW_SKILLS_DIR/$skill_name"
-    mkdir -p "$OPENCLAW_SKILLS_DIR"
     if [[ -d "$dest" ]]; then
       warn "Skill '$skill_name' already exists — overwriting with repo version."
       rm -rf "$dest"
@@ -150,12 +151,13 @@ CLIENT_PLUGINS_DIR="$AGENT_DIR/plugins"
 OPENCLAW_PLUGINS_DIR="$HOME/.openclaw/plugins"
 
 if [[ -d "$CLIENT_PLUGINS_DIR" ]]; then
+  mkdir -p "$OPENCLAW_PLUGINS_DIR"
   plugin_count=0
   for plugin_path in "$CLIENT_PLUGINS_DIR"/*/; do
-    [[ -d "$plugin_path" ]] || continue
+    plugin_path="${plugin_path%/}"          # strip trailing slash added by glob
+    [[ -d "$plugin_path" ]] || continue     # skip if glob found nothing
     plugin_name="$(basename "$plugin_path")"
     dest="$OPENCLAW_PLUGINS_DIR/$plugin_name"
-    mkdir -p "$OPENCLAW_PLUGINS_DIR"
     if [[ -d "$dest" ]]; then
       warn "Plugin '$plugin_name' already exists — overwriting with repo version."
       rm -rf "$dest"
